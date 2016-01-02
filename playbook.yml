@@ -1,0 +1,24 @@
+---
+- hosts: all
+  remote_user: vagrant
+  vars:
+    solr_file: solr-5.4.0.tgz
+    solr_mirror_url: http://ftp.riken.jp/net/apache/lucene/solr/5.4.0/solr-5.4.0.tgz
+    solr_dest: /home/vagrant/solr/
+  tasks:
+    - name: apt-get update
+      sudo: yes
+      apt: update_cache=yes
+    - name: install packages
+      sudo: yes
+      apt: name={{ item }} install_recommends=no
+      with_items:
+        - openjdk-7-jdk
+    - name: create dest directory
+      file: path={{ solr_dest }} state=directory
+    - name: download Solr
+      get_url: url={{ solr_mirror_url }} dest={{ solr_dest }}
+    - name: unarchive Solr
+      command: tar xfvz {{ solr_file }} chdir={{ solr_dest }}
+    - name: start Solr
+      command: ./bin/solr start -e cloud -noprompt chdir=solr/solr-5.4.0
